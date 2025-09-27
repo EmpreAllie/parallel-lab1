@@ -35,15 +35,16 @@ int main(int argc, char* argv[]) {
     int l_patr = 9;
 
     int A = l_name * l_patr * l_surname;
-
+/*
     int B1 = 7, B2 = 8, B3 = 6, B4 = 6;
     int var1 = get_variant(A, B1);
     int var2 = get_variant(A, B2);
     int var3 = get_variant(A, B3);
     int var4 = get_variant(A, B4);
-    printf("\tИнформация о пользователе:\n");
-    printf("A = %d", A);
-    printf("\nВарианты в таблицах:\n\t1: %d\n\t2: %d\n\t3: %d\n\t4: %d\n", var1, var2, var3, var4);
+//    printf("\tИнформация о пользователе:\n");
+//    printf("A = %d", A);
+//    printf("\nВарианты в таблицах:\n\t1: %d\n\t2: %d\n\t3: %d\n\t4: %d\n", var1, var2, var3, var4);
+*/
     int N = atoi(argv[1]);
 
     int i;
@@ -75,7 +76,7 @@ int main(int argc, char* argv[]) {
         fprintf(file, "\tИтерация № %d\nМассив m1:\n", i + 1);
         print_array(m1, N, file);
         fprintf(file, "Массив m2:\n");
-     print_array(m2, N/2, file);
+        print_array(m2, N/2, file);
         fprintf(file, "Итоговое число X: %.2f\n\n\n", x);
 
         free(m1);
@@ -84,7 +85,8 @@ int main(int argc, char* argv[]) {
 
     gettimeofday(&T2, NULL);
     delta_ms = (T2.tv_sec - T1.tv_sec) * 1000 + (T2.tv_usec - T1.tv_usec) / 1000;
-    printf("\nN = %d\nМиллисекунд прошло: %ld\n", N, delta_ms);
+   // printf("\nN = %d\nВремя выполнения программы: %ld\n", N, delta_ms);
+    printf("%ld\n", delta_ms);
 
     fclose(file);
 
