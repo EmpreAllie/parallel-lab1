@@ -7,18 +7,20 @@
 #include <string.h>
 #include <stdbool.h>
 #include <float.h>
+#include <mkl/mkl.h>
+
 
 int get_variant(int A, int B);
-float generate_uniform(unsigned int* seed, float min, float max);
-float* generate_m1(int A, int N, unsigned int* seed_ptr);
-float* generate_m2(int A, int N, unsigned int* seed_ptr);
-void print_array(float* arr, int size, FILE* file);
-void map_m1(float* m1, int size);
-void map_m2(float* m2, int size);
-void merge(float* m1, float* m2, int size_m2);
-void comb_sort(float* m2, int size);
-float reduce(float* m2, int size, float target);
-float find_min_above_zero(float* m2, int size);
+double generate_uniform(unsigned int* seed, double min, double max);
+double* generate_m1(int A, int N, unsigned int* seed_ptr);
+double* generate_m2(int A, int N, unsigned int* seed_ptr);
+void print_array(double* arr, int size, FILE* file);
+void map_m1(double* m1, int size);
+void map_m2(double* m2, int size);
+void merge(double* m1, double* m2, int size_m2);
+void comb_sort(double* m2, int size);
+double reduce(double* m2, int size, double target);
+double find_min_above_zero(double* m2, int size);
 
 
 int main(int argc, char* argv[]) {
@@ -56,8 +58,8 @@ int main(int argc, char* argv[]) {
     for (i = 0; i < 100; i++) {
 
     // 1. Generate
-        float* m1 = generate_m1(A, N, &seed);
-        float* m2 = generate_m2(A, N, &seed);
+        double* m1 = generate_m1(A, N, &seed);
+        double* m2 = generate_m2(A, N, &seed);
 
     // 2. Map
         map_m1(m1, N);
@@ -70,14 +72,14 @@ int main(int argc, char* argv[]) {
         comb_sort(m2, N/2);
 
     // 5. Reduce
-        float target = find_min_above_zero(m2, N/2);
-        float x = reduce(m2, N/2, target);
+        double target = find_min_above_zero(m2, N/2);
+        double x = reduce(m2, N/2, target);
 
         fprintf(file, "\tИтерация № %d\nМассив m1:\n", i + 1);
         print_array(m1, N, file);
         fprintf(file, "Массив m2:\n");
         print_array(m2, N/2, file);
-        fprintf(file, "Итоговое число X: %.2f\n\n\n", x);
+        fprintf(file, "Итоговое число X: %.2lf\n\n\n", x);
 
         free(m1);
         free(m2);
@@ -98,57 +100,61 @@ int get_variant(int A, int B) {
 }
 
 
-float generate_uniform(unsigned int* seed, float min, float max) {
+double generate_uniform(unsigned int* seed, double min, double max) {
     return min + (max - min) * (rand_r(seed) / (RAND_MAX + 1.0));
 }
 
 
 
-float* generate_m1(int A, int N, unsigned int* seed_ptr) {
-    float* m1 = (float*) malloc(N * sizeof(float));
+double* generate_m1(int A, int N, unsigned int* seed_ptr) {
+    double* m1 = (double*) malloc(N * sizeof(double));
 
     for (int i = 0; i < N; i++) {
-        m1[i] = generate_uniform(seed_ptr, 1.0, (float) A);
+        m1[i] = generate_uniform(seed_ptr, 1.0, (double) A);
     }
 
     return m1;
 }
 
-float* generate_m2(int A, int N, unsigned int* seed_ptr) {
-    float* m2 = (float*) malloc(N/2 * sizeof(float));
+double* generate_m2(int A, int N, unsigned int* seed_ptr) {
+    double* m2 = (double*) malloc(N/2 * sizeof(double));
 
     for (int i = 0; i < N/2; i++) {
-     m2[i] = generate_uniform(seed_ptr, (float) A, 10.0 * A);
+        m2[i] = generate_uniform(seed_ptr, (double) A, 10.0 * A);
     }
 
     return m2;
 }
 
 
-void print_array(float* arr, int size, FILE* file) {
+void print_array(double* arr, int size, FILE* file) {
     for (int i = 0; i < size; i++) {
-        fprintf(file, "%.2f ", arr[i]);
+        fprintf(file, "%.2lf ", arr[i]);
     }
     fprintf(file, "\n\n");
 }
 
-void map_m1(float* m1, int size) {
+void map_m1(double* m1, int size) {
+
     for (int i = 0; i < size; i++) {
         m1[i] = (float) cbrt(m1[i] / M_E);
     }
+
+
+    //vdDiv(size, m1, &);
 }
 
-void map_m2(float* m2, int size) {
-    float* m2_copy = (float*) malloc(size * sizeof(float));
-    memcpy(m2_copy, m2, size * sizeof(float));
+void map_m2(double* m2, int size) {
+    double* m2_copy = (double*) malloc(size * sizeof(double));
+    memcpy(m2_copy, m2, size * sizeof(double));
 
     for (int i = 1; i < size; i++) {
-        float prev = m2_copy[i - 1];
-        float sum = m2[i] + prev;
-        float tan_val = tan(sum);
+        double prev = m2_copy[i - 1];
+        double sum = m2[i] + prev;
+        double tan_val = tan(sum);
 
         if (fabs(tan_val) < 1e-10) {
-            m2[i] = 0.0f;
+            m2[i] = 0.0;
         }
         else {
             m2[i] = fabs(1.0 / tan_val);
@@ -161,16 +167,16 @@ void map_m2(float* m2, int size) {
 }
 
 
-void merge(float* m1, float* m2, int size_m2) {
+void merge(double* m1, double* m2, int size_m2) {
     for (int i = 0; i < size_m2; i++) {
         m2[i] = m1[i] / m2[i];
     }
 }
 
 
-void comb_sort(float* m2, int size) {
+void comb_sort(double* m2, int size) {
     int gap = size;
-    float k = 1.3;
+    double k = 1.3;
     bool sorted = false;
 
     while(!sorted) {
@@ -185,7 +191,7 @@ void comb_sort(float* m2, int size) {
         for (int i = 0; i + gap < size; i++) {
             if (m2[i] > m2[i + gap]) {
                 // swap
-                float temp = m2[i];
+                double temp = m2[i];
                 m2[i] = m2[i + gap];
                 m2[i + gap] = temp;
                 sorted = false;
@@ -194,8 +200,8 @@ void comb_sort(float* m2, int size) {
     }
 }
 
-float find_min_above_zero(float* m2, int size) {
-    float target = FLT_MAX;
+double find_min_above_zero(double* m2, int size) {
+    double target = DBL_MAX;
     for (int i = 0; i < size; i++) {
         if (m2[i] < target && m2[i] > 0) {
             target = m2[i];
@@ -204,8 +210,8 @@ float find_min_above_zero(float* m2, int size) {
     return target;
 }
 
-float reduce(float* m2, int size, float target) {
-    float sum = 0;
+double reduce(double* m2, int size, double target) {
+    double sum = 0;
 
     for (int i = 0; i < size; i++) {
         int integ = (int) (m2[i] / target);
