@@ -24,10 +24,13 @@ double find_min_above_zero(double* m2, int size);
 
 
 int main(int argc, char* argv[]) {
+
     if (argc < 2) {
         printf("Запуск: %s <N>\n", argv[0]);
         return 1;
     }
+
+    mkl_set_num_threads(1);
 
     FILE* file = fopen("output", "w");
 
@@ -117,7 +120,7 @@ double* generate_m1(int A, int N, unsigned int* seed_ptr) {
 }
 
 double* generate_m2(int A, int N, unsigned int* seed_ptr) {
-    double* m2 = (double*) malloc(N/2 * sizeof(double));
+    double* m2 = (double*) malloc((N/2) * sizeof(double));
 
     for (int i = 0; i < N/2; i++) {
         m2[i] = generate_uniform(seed_ptr, (double) A, 10.0 * A);
@@ -143,9 +146,14 @@ void map_m1(double* m1, int size) {
 */
 
     double e = M_E;
+    double* e_arr = (double*) malloc(size * sizeof(double));
+    for (int i = 0; i < size; i++) {
+        e_arr[i] = e;
+    }
+
     double* temp = (double*) malloc(size * sizeof(double));
 
-    vdDiv(size, m1, &e, temp);
+    vdDiv(size, m1, e_arr, temp);
     vdCbrt(size, temp, m1);
 
     free(temp);
