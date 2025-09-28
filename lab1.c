@@ -25,12 +25,10 @@ double find_min_above_zero(double* m2, int size);
 
 int main(int argc, char* argv[]) {
 
-    if (argc < 2) {
-        printf("Запуск: %s <N>\n", argv[0]);
+    if (argc < 3) {
+        printf("Запуск: %s <Размер_массива> <Число_потоков>\n", argv[0]);
         return 1;
     }
-
-    mkl_set_num_threads(1);
 
     FILE* file = fopen("output", "w");
 
@@ -51,6 +49,8 @@ int main(int argc, char* argv[]) {
 //    printf("\nВарианты в таблицах:\n\t1: %d\n\t2: %d\n\t3: %d\n\t4: %d\n", var1, var2, var3, var4);
 */
     int N = atoi(argv[1]);
+    int M = atoi(argv[2]);
+    mkl_set_num_threads(M);
 
     int i;
     long delta_ms;
