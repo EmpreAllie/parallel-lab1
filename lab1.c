@@ -135,42 +135,60 @@ void print_array(double* arr, int size, FILE* file) {
 }
 
 void map_m1(double* m1, int size) {
-
+/*
+    // this FOR loop is scalar, yet to be replaced with vectorized function
     for (int i = 0; i < size; i++) {
         m1[i] = (float) cbrt(m1[i] / M_E);
     }
+*/
 
+    double e = M_E;
+    double* temp = (double*) malloc(size * sizeof(double));
 
-    //vdDiv(size, m1, &);
+    vdDiv(size, m1, &e, temp);
+    vdCbrt(size, temp, m1);
+
+    free(temp);
 }
 
 void map_m2(double* m2, int size) {
     double* m2_copy = (double*) malloc(size * sizeof(double));
     memcpy(m2_copy, m2, size * sizeof(double));
 
-    for (int i = 1; i < size; i++) {
-        double prev = m2_copy[i - 1];
-        double sum = m2[i] + prev;
-        double tan_val = tan(sum);
+    // размер: size-1, потому что первый элемент не изменяется
+    double* args = (double*) malloc((size - 1) * sizeof(double));
+    double* tans = (double*) malloc((size - 1) * sizeof(double));
 
-        if (fabs(tan_val) < 1e-10) {
+    // заполняем массив аргументов для тангенсов, который потом пойдёт в vdTan( . . . );
+    for (int i = 1; i < size; i++) {
+        args[i - 1] = m2[i] + m2_copy[i - 1];
+    }
+
+    // векторная функция получения тангенсов
+    vdTan(size - 1, args, tans);
+
+    for (int i = 1; i < size; i++) {
+        if (fabs(tans[i - 1]) < 1e-10) {
             m2[i] = 0.0;
         }
         else {
-            m2[i] = fabs(1.0 / tan_val);
+            m2[i] = fabs(1.0 / tans[i - 1]);
         }
-
-//        m2[i] = fabs(1.0 / tan(m2[i] + m2_copy[i - 1]));
     }
 
     free(m2_copy);
+    free(args);
+    free(tans);
 }
 
 
 void merge(double* m1, double* m2, int size_m2) {
+/*
     for (int i = 0; i < size_m2; i++) {
         m2[i] = m1[i] / m2[i];
     }
+*/
+    vdDiv(size_m2, m1, m2, m2); // m2[i] = m1[i] / m2[i]
 }
 
 
