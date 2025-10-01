@@ -188,21 +188,25 @@ void map_m2(double* m2, int size) {
     double* m2_copy = (double*) malloc(size * sizeof(double));
     memcpy(m2_copy, m2, size * sizeof(double));
 
-    // размер: size-1, потому что первый элемент не изменяется
+    // actual size equals (size-1) because the first element remains unchanged
     double* args = (double*) malloc((size - 1) * sizeof(double));
     double* tans = (double*) malloc((size - 1) * sizeof(double));
 
-    // заполняем массив аргументов для тангенсов, который потом пойдёт в vdTan( . . . );
+    // filling the array of tan() function arguments that will later be used in vdTan( . . . );
+#ifdef _OPENMP
+#pragma omp parallel for default(none) shared(args, m2, m2_copy, size)
+#endif
     for (int i = 1; i < size; i++) {
         args[i - 1] = m2[i] + m2_copy[i - 1];
     }
 
-    // векторная функция получения тангенсов
+    // vectorized tangent function
     vdTan(size - 1, args, tans);
 
     vdInv(size - 1, tans, m2);
     vdAbs(size - 1, m2, m2);
 
+    // we're leaving this loop as it is, because parallelization is impossible here
     for (int i = size - 1; i < 1; i--) {
         m2[i] = m2[i - 1];
     }
