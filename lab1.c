@@ -112,7 +112,9 @@ double generate_uniform(unsigned int* seed, double min, double max) {
 double* generate_m1(int A, int N, unsigned int* seed_ptr) {
     double* m1 = (double*) malloc(N * sizeof(double));
 
+//    #pragma omp parallel for default(none) private(i, seed_priv) shared(A, N)
     for (int i = 0; i < N; i++) {
+//        unsigned int seed_priv = *seed_ptr + omp_get_thread_num();
         m1[i] = generate_uniform(seed_ptr, 1.0, (double) A);
     }
 
@@ -138,13 +140,6 @@ void print_array(double* arr, int size, FILE* file) {
 }
 
 void map_m1(double* m1, int size) {
-/*
-    // this FOR loop is scalar, yet to be replaced with vectorized function
-    for (int i = 0; i < size; i++) {
-        m1[i] = (float) cbrt(m1[i] / M_E);
-    }
-*/
-
     double e = M_E;
     double* e_arr = (double*) malloc(size * sizeof(double));
     for (int i = 0; i < size; i++) {
@@ -175,14 +170,13 @@ void map_m2(double* m2, int size) {
     // векторная функция получения тангенсов
     vdTan(size - 1, args, tans);
 
-    for (int i = 1; i < size; i++) {
-        if (fabs(tans[i - 1]) < 1e-10) {
-            m2[i] = 0.0;
-        }
-        else {
-            m2[i] = fabs(1.0 / tans[i - 1]);
-        }
+    vdInv(size - 1, tans, m2);
+    vdAbs(size - 1, m2, m2);
+
+    for (int i = size - 1; i < 1; i--) {
+        m2[i] = m2[i - 1];
     }
+    m2[0] = 0.0;
 
     free(m2_copy);
     free(args);
@@ -191,11 +185,6 @@ void map_m2(double* m2, int size) {
 
 
 void merge(double* m1, double* m2, int size_m2) {
-/*
-    for (int i = 0; i < size_m2; i++) {
-        m2[i] = m1[i] / m2[i];
-    }
-*/
     vdDiv(size_m2, m1, m2, m2); // m2[i] = m1[i] / m2[i]
 }
 
