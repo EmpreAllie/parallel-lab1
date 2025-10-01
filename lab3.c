@@ -137,8 +137,20 @@ double* generate_m1(int A, int N, unsigned int* seed_ptr) {
 double* generate_m2(int A, int N, unsigned int* seed_ptr) {
     double* m2 = (double*) malloc((N/2) * sizeof(double));
 
+#ifdef _OPENMP
+#pragma omp parallel for default(none) shared(A, N, m2, seed_ptr)
+#endif
+
     for (int i = 0; i < N/2; i++) {
-        m2[i] = generate_uniform(seed_ptr, (double) A, 10.0 * A);
+        unsigned int seed_priv;
+
+    #ifdef _OPENMP
+        seed_priv = *seed_ptr + (unsigned int)(i + omp_get_thread_num());
+    #else
+        seed_priv = *seed_ptr + (unsigned int) i;
+    #endif
+
+        m2[i] = generate_uniform(&seed_priv, (double) A, 10.0 * A);
     }
 
     return m2;
@@ -155,6 +167,11 @@ void print_array(double* arr, int size, FILE* file) {
 void map_m1(double* m1, int size) {
     double e = M_E;
     double* e_arr = (double*) malloc(size * sizeof(double));
+
+#ifdef _OPENMP
+#pragma omp parallel for default(none) shared(e_arr, e, size)
+#endif
+
     for (int i = 0; i < size; i++) {
         e_arr[i] = e;
     }
