@@ -116,16 +116,16 @@ double* generate_m1(int A, int N, unsigned int* seed_ptr) {
     double* m1 = (double*) malloc(N * sizeof(double));
 
 #ifdef _OPENMP
-#pragma omp parallel for default(none) private(...) shared(A, N, m1, seed_ptr)
+#pragma omp parallel for default(none) shared(A, N, m1, seed_ptr)
 #endif
 
     for (int i = 0; i < N; i++) {
-        unsigned int seed_priv;// = *seed_ptr + omp_get_thread_num();
+        unsigned int seed_priv;
 
     #ifdef _OPENMP
-        seed_priv = *seed_ptr + (unsigned int)(i + omp_get_thread_num());
+        seed_priv = *seed_ptr + (unsigned int) (i + omp_get_thread_num());
     #else
-        seed_priv = *seed_ptr + (unsigned int)i;
+        seed_priv = *seed_ptr + (unsigned int) i;
     #endif
 
         m1[i] = generate_uniform(&seed_priv, 1.0, (double) A);
