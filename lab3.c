@@ -80,12 +80,13 @@ int main(int argc, char* argv[]) {
     // 5. Reduce
         double target = find_min_above_zero(m2, N/2);
         double x = reduce(m2, N/2, target);
-
+/*
         fprintf(file, "\tИтерация № %d\nМассив m1:\n", i + 1);
         print_array(m1, N, file);
         fprintf(file, "Массив m2:\n");
         print_array(m2, N/2, file);
-        fprintf(file, "Итоговое число X: %.2lf\n\n\n", x);
+*/
+//        fprintf(file, "Итоговое число X: %.2lf\n\n\n", x);
 
         free(m1);
         free(m2);
@@ -231,12 +232,14 @@ void comb_sort(double* m2, int size) {
     while(!sorted) {
         gap = (int) (gap / k);
 
-        // последний проход
+        // last iteration
         if (gap <= 1) {
             gap = 1;
             sorted = true;
         }
-
+        // well...
+        // we can't really write #pragma omp parallel here.
+        // because this sorting algorithm isn't thread safe
         for (int i = 0; i + gap < size; i++) {
             if (m2[i] > m2[i + gap]) {
                 // swap
@@ -262,12 +265,16 @@ double find_min_above_zero(double* m2, int size) {
 double reduce(double* m2, int size, double target) {
     double sum = 0;
 
+#ifdef _OPENMP
+#pragma omp parallel for default(none) shared(m2, size, target) reduction(+:sum)
+#endif
     for (int i = 0; i < size; i++) {
         int integ = (int) (m2[i] / target);
         if (integ % 2 == 0) {
             sum += sin(m2[i]);
         }
     }
+
     return sum;
 }
 
