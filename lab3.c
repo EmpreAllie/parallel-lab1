@@ -54,6 +54,7 @@ int main(int argc, char* argv[]) {
     int N = atoi(argv[1]);
     int M = atoi(argv[2]);
     mkl_set_num_threads(M);
+    omp_set_num_threads(M);
 
     int i;
     long delta_ms;
