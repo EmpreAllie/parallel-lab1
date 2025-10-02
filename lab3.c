@@ -254,6 +254,10 @@ void comb_sort(double* m2, int size) {
 
 double find_min_above_zero(double* m2, int size) {
     double target = DBL_MAX;
+
+#ifdef _OPENMP
+#pragma omp parallel for default(none) shared(m2, size) reduction(min:target)
+#endif
     for (int i = 0; i < size; i++) {
         if (m2[i] < target && m2[i] > 0) {
             target = m2[i];
